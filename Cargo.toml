@@ -1,0 +1,10 @@
+[package]
+name = "twixter"
+version = "0.1.0"
+authors = ["Shimmy Xu <shimmy.xu@shimmy1996.com>"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4.8"
+toml = "0.5.3"
+dirs = "2.0"
