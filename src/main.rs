@@ -16,19 +16,16 @@ struct Config {
 
 impl Config {
     fn new(config_path: &Path) -> Config {
-        use toml::Value;
+        use ini::Ini;
 
-        let mut f = File::open(config_path).unwrap();
-        let mut buffer = String::new();
-        f.read_to_string(&mut buffer).unwrap();
-
-        let config = buffer.parse::<Value>().unwrap();
+        let config = Ini::load_from_file(config_path).unwrap();
+        let twtxt_config = config.section(Some("twtxt".to_owned())).unwrap();
         Config {
-            nick: config["nick"].as_str().unwrap().to_string(),
-            twtfile: config["twtfile"].as_str().unwrap().to_string(),
-            twturl: config["twturl"].as_str().unwrap().to_string(),
-            scp_addr: config["scp_addr"].as_str().unwrap().to_string(),
-            scp_port: config["scp_port"].as_integer().unwrap().to_string(),
+            nick: twtxt_config["nick"].to_owned(),
+            twtfile: twtxt_config["twtfile"].to_owned(),
+            twturl: twtxt_config["twturl"].to_owned(),
+            scp_addr: twtxt_config["scp_addr"].to_owned(),
+            scp_port: twtxt_config["scp_port"].to_owned(),
         }
     }
 }

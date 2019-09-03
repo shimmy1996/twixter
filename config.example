@@ -1,5 +1,6 @@
-nick = "user"
-twtfile = "~/.local/share/twixter/twtxt.txt"
-twturl = "https://example.org/twtxt.txt"
-scp_addr = "user@example.org:~/public_html/twtxt.txt"
+[twtxt]
+nick = user
+twtfile = ~/.local/share/twixter/twtxt.txt
+twturl = https://example.org/twtxt.txt
+scp_addr = user@example.org:~/public_html/twtxt.txt
 scp_port = 22
