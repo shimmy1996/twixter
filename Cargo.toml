@@ -5,7 +5,7 @@ authors = ["Shimmy Xu <shimmy.xu@shimmy1996.com>"]
 edition = "2018"
 
 [dependencies]
-chrono = "0.4.8"
+chrono = "~0.4.8"
 clap = "~2.33.0"
-dirs = "2.0"
-rust-ini = "0.13.0"
+dirs = "~2.0.2"
+rust-ini = "~0.13.0"
