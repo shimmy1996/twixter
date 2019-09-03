@@ -72,8 +72,17 @@ fn main() {
         .get_matches();
 
     // Source config.
-    let mut config_dir = dirs::config_dir().unwrap();
-    config_dir.push("twixter/config");
+    let mut config_dir = command
+        .args
+        .get("config_dir")
+        .and_then(|matched_arg| Some(Path::new(&matched_arg.vals[0]).to_path_buf()))
+        .unwrap_or({
+            let mut config_dir = dirs::config_dir().unwrap();
+            config_dir.push("twixter");
+            config_dir
+        });
+    config_dir.push("config");
+
     let config = Config::new(&config_dir);
 
     // Check if twtfile exists and create one if necessary.
