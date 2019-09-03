@@ -3,6 +3,8 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
+use clap::{crate_version, App, Arg, SubCommand};
+
 #[derive(Debug)]
 struct Config {
     nick: String,
@@ -32,6 +34,43 @@ impl Config {
 }
 
 fn main() {
+    let command = App::new("twixter")
+        .version(crate_version!())
+        .about("A client for twtxt, microblog for hackers")
+        .arg(
+            Arg::with_name("config_dir")
+                .short("c")
+                .long("config")
+                .value_name("PATH")
+                .help("Specifies a custom config file location")
+                .takes_value(true),
+        )
+        .subcommand(
+            SubCommand::with_name("tweet")
+                .version(crate_version!())
+                .about("Append a new tweet to your twtxt file")
+                .arg(Arg::with_name("content").multiple(true)),
+        )
+        .subcommand(SubCommand::with_name("timeline").about("Retrieves your timeline"))
+        .subcommand(
+            SubCommand::with_name("follow")
+                .version(crate_version!())
+                .about("Adds a new source to your followings")
+                .arg(
+                    Arg::with_name("nick")
+                        .required(true)
+                        .value_name("NICK")
+                        .help("Specifies nickname to store source with"),
+                )
+                .arg(
+                    Arg::with_name("url")
+                        .required(true)
+                        .value_name("URL")
+                        .help("Specifies source url"),
+                ),
+        )
+        .get_matches();
+
     // Source config.
     let mut config_dir = dirs::config_dir().unwrap();
     config_dir.push("twixter/config");
