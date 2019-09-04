@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::path::Path;
@@ -12,6 +13,7 @@ struct Config {
     twturl: String,
     scp_addr: String,
     scp_port: String,
+    following: HashMap<String, String>,
 }
 
 impl Config {
@@ -20,12 +22,23 @@ impl Config {
 
         let config = Ini::load_from_file(config_path).unwrap();
         let twtxt_config = config.section(Some("twtxt".to_owned())).unwrap();
+
+        let mut following = config
+            .section(Some("following".to_owned()))
+            .unwrap()
+            .to_owned();
+        // Always follow oneself.
+        *following
+            .entry(twtxt_config["nick"].to_owned())
+            .or_default() = twtxt_config["twturl"].to_owned();
+
         Config {
             nick: twtxt_config["nick"].to_owned(),
             twtfile: twtxt_config["twtfile"].to_owned(),
             twturl: twtxt_config["twturl"].to_owned(),
             scp_addr: twtxt_config["scp_addr"].to_owned(),
             scp_port: twtxt_config["scp_port"].to_owned(),
+            following: following,
         }
     }
 }
