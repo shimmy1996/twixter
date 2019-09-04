@@ -105,7 +105,22 @@ fn main() {
     fetch(&config);
 
     // Add user post.
-    let content = std::env::args().skip(1).collect::<Vec<String>>().join(" ");
+    let content = command
+        .subcommand_matches("tweet")
+        .and_then(|subcommand| {
+            subcommand.args.get("content").and_then(|matched_arg| {
+                Some(
+                    matched_arg
+                        .vals
+                        .iter()
+                        .map(|os_string| os_string.clone().into_string().unwrap())
+                        .collect::<Vec<String>>()
+                        .join(" "),
+                )
+            })
+        })
+        .unwrap_or_default();
+
     if content == "" {
         eprintln!("Error: post content must not be empty");
     } else {
