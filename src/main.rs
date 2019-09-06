@@ -1,18 +1,19 @@
 use std::collections::HashMap;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
-use clap::{crate_version, App, Arg, SubCommand};
+use clap::{crate_version, App, Arg, ArgMatches, SubCommand};
+use strfmt::strfmt;
 
 #[derive(Debug)]
 struct Config {
     nick: String,
     twtfile: String,
     twturl: String,
-    scp_addr: String,
-    scp_port: String,
+    pre_tweet_hook: String,
+    post_tweet_hook: String,
     following: HashMap<String, String>,
 }
 
@@ -31,13 +32,16 @@ impl Config {
         *following
             .entry(twtxt_config["nick"].to_owned())
             .or_default() = twtxt_config["twturl"].to_owned();
+        // Parse hook commands.
+        let pre_tweet_hook = strfmt(&twtxt_config["pre_tweet_hook"], twtxt_config).unwrap();
+        let post_tweet_hook = strfmt(&twtxt_config["post_tweet_hook"], twtxt_config).unwrap();
 
         Config {
             nick: twtxt_config["nick"].to_owned(),
             twtfile: twtxt_config["twtfile"].to_owned(),
             twturl: twtxt_config["twturl"].to_owned(),
-            scp_addr: twtxt_config["scp_addr"].to_owned(),
-            scp_port: twtxt_config["scp_port"].to_owned(),
+            pre_tweet_hook: pre_tweet_hook,
+            post_tweet_hook: post_tweet_hook,
             following: following,
         }
     }
@@ -101,59 +105,56 @@ fn main() {
         std::fs::create_dir_all(twtfile_path).unwrap();
     }
 
-    // Fetch current twtfile.
-    fetch(&config);
+    // Parse subcommands.
+    match command.subcommand() {
+        ("tweet", Some(subcommand)) => tweet(&config, &subcommand),
+        _ => {}
+    }
+}
 
-    // Add user post.
-    let content = command
-        .subcommand_matches("tweet")
-        .and_then(|subcommand| {
-            subcommand.args.get("content").and_then(|matched_arg| {
-                Some(
-                    matched_arg
-                        .vals
-                        .iter()
-                        .map(|os_string| os_string.clone().into_string().unwrap())
-                        .collect::<Vec<String>>()
-                        .join(" "),
-                )
-            })
+fn tweet(config: &Config, subcommand: &ArgMatches) {
+    // Helper to run the tweet subcommand.
+
+    // Parse tweet content.
+    let content = subcommand
+        .args
+        .get("content")
+        .and_then(|matched_arg| {
+            Some(
+                matched_arg
+                    .vals
+                    .iter()
+                    .map(|os_string| os_string.clone().into_string().unwrap())
+                    .collect::<Vec<String>>()
+                    .join(" "),
+            )
         })
         .unwrap_or_default();
 
     if content == "" {
         eprintln!("Error: post content must not be empty");
     } else {
-        let post = compose(content);
+        // Run pre tweet hook.
+        Command::new("sh")
+            .args(&["-c", &config.pre_tweet_hook])
+            .output()
+            .expect("Failed to run pre tweet hook");
 
-        let mut file = OpenOptions::new()
+        // Write tweet.
+        OpenOptions::new()
             .append(true)
             .create(true)
-            .open(&config.twtfile)
-            .unwrap();
-
-        file.write(post.as_bytes())
+            .open(Path::new(&config.twtfile))
+            .unwrap()
+            .write(compose(content).as_bytes())
             .expect("Unable to write new post");
+
+        // Run post tweet hook.
+        Command::new("sh")
+            .args(&["-c", &config.post_tweet_hook])
+            .output()
+            .expect("Failed to run post tweet hook");
     }
-
-    // Publish to remote.
-    publish(&config);
-}
-
-fn fetch(config: &Config) {
-    // Uses scp to fetch latest twtfile.
-    Command::new("scp")
-        .args(&["-P", &config.scp_port, &config.scp_addr, &config.twtfile])
-        .output()
-        .expect("Failed to pull!");
-}
-
-fn publish(config: &Config) {
-    // Publishes twtfile to remote.
-    Command::new("scp")
-        .args(&["-P", &config.scp_port, &config.twtfile, &config.scp_addr])
-        .output()
-        .expect("Failed to publish!");
 }
 
 fn compose(content: String) -> String {
