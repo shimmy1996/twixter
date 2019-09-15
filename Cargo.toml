@@ -3,6 +3,13 @@ name = "twixter"
 version = "0.1.0"
 authors = ["Shimmy Xu <shimmy.xu@shimmy1996.com>"]
 edition = "2018"
+description = "A twtxt command line client written in Rust."
+homepage = "https://github.com/shimmy1996/twixter"
+documentation = "https://docs.rs/twixter"
+readme = "./README.org"
+license = "MIT OR Apache-2.0"
+keywords = ["twtxt"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 chrono = "~0.4.8"
