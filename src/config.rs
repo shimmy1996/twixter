@@ -8,6 +8,7 @@ pub struct Config {
     pub twturl: String,
     pub pre_tweet_hook: String,
     pub post_tweet_hook: String,
+    pub limit_timeline: i32,
     pub following: HashMap<String, String>,
 }
 
@@ -37,6 +38,7 @@ impl Config {
             twturl: twtxt_config["twturl"].to_owned(),
             pre_tweet_hook: pre_tweet_hook,
             post_tweet_hook: post_tweet_hook,
+            limit_timeline: twtxt_config["limit_timeline"].parse::<i32>().unwrap(),
             following: following,
         }
     }

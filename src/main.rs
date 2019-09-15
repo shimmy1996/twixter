@@ -1,8 +1,9 @@
-use clap::{crate_version, App, Arg, ArgMatches, SubCommand};
+use clap::{crate_version, App, Arg, SubCommand};
 
 use std::path::Path;
 
 mod config;
+mod timeline;
 mod tweet;
 use crate::config::Config;
 
@@ -67,6 +68,7 @@ fn main() {
     // Parse subcommands.
     match command.subcommand() {
         ("tweet", Some(subcommand)) => tweet::tweet(&config, &subcommand),
+        ("timeline", Some(subcommand)) => timeline::timeline(&config, &subcommand),
         _ => {}
     }
 }
