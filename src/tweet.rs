@@ -1,3 +1,4 @@
+use chrono::{Local, SecondsFormat};
 use clap::ArgMatches;
 
 use std::fs::OpenOptions;
@@ -53,7 +54,6 @@ pub fn tweet(config: &Config, subcommand: &ArgMatches) {
 
 /// Formats given content into twtxt format by adding datetime.
 fn compose(content: String) -> String {
-    use chrono::{Local, SecondsFormat};
     let timestamp = Local::now().to_rfc3339_opts(SecondsFormat::Secs, true);
     let mut post = String::new();
     post.push_str(&timestamp);
