@@ -35,16 +35,17 @@ pub fn timeline(config: &Config, _subcommand: &ArgMatches) {
 /// Parses given twtxt url, returns a Vec of (post_time, content).
 fn parse_twtxt(twturl: &str) -> Vec<(DateTime<FixedOffset>, String)> {
     let client = Client::new();
-    let resp = client.get(twturl).send().unwrap().text().unwrap();
     let mut tweets = Vec::new();
 
-    for line in resp.lines() {
-        if let Some(seperator_idx) = line.find('\t') {
-            if let Ok(tweet_time) = DateTime::parse_from_rfc3339(&line[..seperator_idx]) {
-                tweets.push((tweet_time, line[seperator_idx + 1..].to_owned()));
+    if let Ok(resp_text) = client.get(twturl).send().and_then(|mut resp| resp.text()) {
+        for line in resp_text.lines() {
+            if let Some(seperator_idx) = line.find('\t') {
+                if let Ok(tweet_time) = DateTime::parse_from_rfc3339(&line[..seperator_idx]) {
+                    tweets.push((tweet_time, line[seperator_idx + 1..].to_owned()));
+                };
             };
-        };
-    }
+        }
+    };
 
     tweets
 }
