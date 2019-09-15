@@ -3,6 +3,7 @@ use clap::{crate_version, App, Arg, SubCommand};
 use std::path::Path;
 
 mod config;
+mod follow;
 mod timeline;
 mod tweet;
 use crate::config::Config;
@@ -69,6 +70,7 @@ fn main() {
     match command.subcommand() {
         ("tweet", Some(subcommand)) => tweet::tweet(&config, &subcommand),
         ("timeline", Some(subcommand)) => timeline::timeline(&config, &subcommand),
+        ("follow", Some(subcommand)) => follow::follow(&config, &subcommand, &config_dir),
         _ => {}
     }
 }
