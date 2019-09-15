@@ -1,51 +1,12 @@
-use std::collections::HashMap;
+use clap::{crate_version, App, Arg, ArgMatches, SubCommand};
+
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::path::Path;
 use std::process::Command;
 
-use clap::{crate_version, App, Arg, ArgMatches, SubCommand};
-use strfmt::strfmt;
-
-#[derive(Debug)]
-struct Config {
-    nick: String,
-    twtfile: String,
-    twturl: String,
-    pre_tweet_hook: String,
-    post_tweet_hook: String,
-    following: HashMap<String, String>,
-}
-
-impl Config {
-    fn new(config_path: &Path) -> Config {
-        use ini::Ini;
-
-        let config = Ini::load_from_file(config_path).unwrap();
-        let twtxt_config = config.section(Some("twtxt".to_owned())).unwrap();
-
-        let mut following = config
-            .section(Some("following".to_owned()))
-            .unwrap()
-            .to_owned();
-        // Always follow oneself.
-        *following
-            .entry(twtxt_config["nick"].to_owned())
-            .or_default() = twtxt_config["twturl"].to_owned();
-        // Parse hook commands.
-        let pre_tweet_hook = strfmt(&twtxt_config["pre_tweet_hook"], twtxt_config).unwrap();
-        let post_tweet_hook = strfmt(&twtxt_config["post_tweet_hook"], twtxt_config).unwrap();
-
-        Config {
-            nick: twtxt_config["nick"].to_owned(),
-            twtfile: twtxt_config["twtfile"].to_owned(),
-            twturl: twtxt_config["twturl"].to_owned(),
-            pre_tweet_hook: pre_tweet_hook,
-            post_tweet_hook: post_tweet_hook,
-            following: following,
-        }
-    }
-}
+mod config;
+use crate::config::Config;
 
 fn main() {
     let command = App::new("twixter")
