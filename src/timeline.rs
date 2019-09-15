@@ -11,7 +11,12 @@ pub fn timeline(config: &Config, _subcommand: &ArgMatches) {
     // Store (post_time, nick, content).
     let mut all_tweets = BinaryHeap::<(DateTime<FixedOffset>, String, String)>::new();
 
-    for (nick, twturl) in config.following.iter() {
+    // Pull and parse twtxt files from user and each followed source.
+    for (nick, twturl) in config
+        .following
+        .iter()
+        .chain(vec![(&config.nick, &config.twturl)].into_iter())
+    {
         let tweets = parse_twtxt(twturl);
         for (post_time, content) in tweets {
             all_tweets.push((post_time, nick.to_owned(), content));

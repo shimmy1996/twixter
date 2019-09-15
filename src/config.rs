@@ -19,14 +19,10 @@ impl Config {
         let config = Ini::load_from_file(config_path).unwrap();
         let twtxt_config = config.section(Some("twtxt".to_owned())).unwrap();
 
-        let mut following = config
+        let following = config
             .section(Some("following".to_owned()))
             .unwrap()
             .to_owned();
-        // Always follow oneself.
-        *following
-            .entry(twtxt_config["nick"].to_owned())
-            .or_default() = twtxt_config["twturl"].to_owned();
         // Parse hook commands.
         let pre_tweet_hook = strfmt::strfmt(&twtxt_config["pre_tweet_hook"], twtxt_config).unwrap();
         let post_tweet_hook =
