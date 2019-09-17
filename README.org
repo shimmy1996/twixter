@@ -1,3 +1,5 @@
+#+Options: toc:nil
+
 * Twixter
 A [[https://twtxt.readthedocs.io][twtxt]] command line client written in Rust.
 
