@@ -78,11 +78,11 @@ impl fmt::Display for Entry {
     /// Alternate format uses absolute time.
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let timestamp = if formatter.alternate() {
+            Self::format_duration(Local::now() - self.timestamp.with_timezone(&Local))
+        } else {
             self.timestamp
                 .with_timezone(&Local)
                 .to_rfc3339_opts(SecondsFormat::Secs, true)
-        } else {
-            Self::format_duration(Local::now() - self.timestamp.with_timezone(&Local))
         };
 
         write!(
@@ -175,12 +175,12 @@ mod tests {
         };
 
         assert_eq!(
-            format!("{}", entry),
+            format!("{:#}", entry),
             format!("@anonymous 1 week ago\nHello world!",)
         );
 
         assert_eq!(
-            format!("{:#}", entry),
+            format!("{}", entry),
             format!(
                 "@anonymous {}\nHello world!",
                 timestamp
