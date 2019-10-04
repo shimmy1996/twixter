@@ -1,19 +1,19 @@
-use chrono::{offset::TimeZone, DateTime, Duration, FixedOffset, Local, SecondsFormat};
+use chrono::{DateTime, Duration, FixedOffset, Local, SecondsFormat};
 
 use std::fmt;
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Debug)]
 pub struct Entry {
-    pub timestamp: DateTime<FixedOffset>,
-    pub author: Option<String>,
-    pub content: String,
+    timestamp: DateTime<FixedOffset>,
+    author: Option<String>,
+    content: String,
 }
 
 impl Entry {
     /// Generates a new entry from given content.
     pub fn new(content: String, author: Option<String>) -> Entry {
         Entry {
-            timestamp: Local::now().into(),
+            timestamp: Self::now(),
             author,
             content,
         }
@@ -71,6 +71,12 @@ impl Entry {
             format!("{} {} ago", num, unit)
         }
     }
+
+    /// Get local time now as DateTime<FixedOffset>.
+    fn now() -> DateTime<FixedOffset> {
+        let local = Local::now();
+        local.with_timezone(local.offset())
+    }
 }
 
 impl fmt::Display for Entry {
@@ -99,11 +105,13 @@ impl fmt::Display for Entry {
 mod tests {
     use super::*;
 
+    use chrono::offset::TimeZone;
+
     #[test]
     fn test_new() {
-        let start: DateTime<FixedOffset> = Local::now().into();
+        let start: DateTime<FixedOffset> = Entry::now();
         let entry = Entry::new("content".to_string(), Some("author".to_string()));
-        let end: DateTime<FixedOffset> = Local::now().into();
+        let end: DateTime<FixedOffset> = Entry::now();
 
         assert_eq!(start.cmp(&entry.timestamp), std::cmp::Ordering::Less);
         assert_eq!(end.cmp(&entry.timestamp), std::cmp::Ordering::Greater);
@@ -166,8 +174,21 @@ mod tests {
     }
 
     #[test]
+    fn test_now() {
+        let to_fixed_offset = |x: &DateTime<Local>| x.with_timezone(x.offset());
+
+        let start = to_fixed_offset(&Local::now());
+        let timestamp = Entry::now();
+        let end = to_fixed_offset(&Local::now());
+
+        assert_eq!(timestamp.offset(), Local::now().offset());
+        assert_eq!(start.cmp(&timestamp), std::cmp::Ordering::Less);
+        assert_eq!(end.cmp(&timestamp), std::cmp::Ordering::Greater);
+    }
+
+    #[test]
     fn test_display() {
-        let timestamp = (Local::now() - Duration::weeks(1)).into();
+        let timestamp = Entry::now() - Duration::weeks(1);
         let entry = Entry {
             timestamp,
             author: Some("anonymous".to_string()),
@@ -176,16 +197,14 @@ mod tests {
 
         assert_eq!(
             format!("{:#}", entry),
-            format!("@anonymous 1 week ago\nHello world!",)
+            "@anonymous 1 week ago\nHello world!"
         );
 
         assert_eq!(
             format!("{}", entry),
             format!(
                 "@anonymous {}\nHello world!",
-                timestamp
-                    .with_timezone(&Local)
-                    .to_rfc3339_opts(SecondsFormat::Secs, true)
+                timestamp.to_rfc3339_opts(SecondsFormat::Secs, true)
             )
         );
     }
