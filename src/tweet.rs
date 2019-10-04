@@ -41,7 +41,7 @@ pub fn tweet(config: &Config, subcommand: &ArgMatches) {
             .create(true)
             .open(Path::new(&config.twtfile))
             .unwrap()
-            .write(Entry::new(content, None).to_string().as_bytes())
+            .write(Entry::new(content, None).to_twtxt().as_bytes())
             .expect("Unable to write new post");
 
         // Run post tweet hook.

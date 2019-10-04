@@ -36,8 +36,8 @@ impl Entry {
         }
     }
 
-    /// Generates spec representation for given entry.
-    pub fn to_string(&self) -> String {
+    /// Generates string representation per twtxt spec for given entry.
+    pub fn to_twtxt(&self) -> String {
         format!(
             "{}\t{}\n",
             &self.timestamp.to_rfc3339_opts(SecondsFormat::Secs, true),
