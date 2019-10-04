@@ -1,8 +1,8 @@
-use chrono::{DateTime, Duration, FixedOffset, Local, SecondsFormat};
+use chrono::{offset::TimeZone, DateTime, Duration, FixedOffset, Local, SecondsFormat};
 
 use std::fmt;
 
-#[derive(Ord, PartialOrd, PartialEq, Eq)]
+#[derive(Ord, PartialOrd, PartialEq, Eq, Debug)]
 pub struct Entry {
     pub timestamp: DateTime<FixedOffset>,
     pub author: Option<String>,
@@ -87,7 +87,7 @@ impl fmt::Display for Entry {
 
         write!(
             formatter,
-            "\n@{} {}\n{}",
+            "@{} {}\n{}",
             self.author.as_ref().unwrap_or(&"".to_string()),
             &timestamp,
             &self.content
@@ -98,6 +98,46 @@ impl fmt::Display for Entry {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_new() {
+        let start: DateTime<FixedOffset> = Local::now().into();
+        let entry = Entry::new("content".to_string(), Some("author".to_string()));
+        let end: DateTime<FixedOffset> = Local::now().into();
+
+        assert_eq!(start.cmp(&entry.timestamp), std::cmp::Ordering::Less);
+        assert_eq!(end.cmp(&entry.timestamp), std::cmp::Ordering::Greater);
+        assert_eq!(entry.content, "content");
+        assert_eq!(entry.author, Some("author".to_string()));
+    }
+
+    #[test]
+    fn test_parse() {
+        assert_eq!(Entry::parse("This is not valid twtxt.\t", None), Err(()));
+        assert_eq!(
+            Entry::parse("2016-02-04T13:30:01+01:00\tThis is valid twtxt.", None),
+            Ok(Entry {
+                timestamp: FixedOffset::east(3600).ymd(2016, 02, 04).and_hms(13, 30, 1),
+                author: None,
+                content: "This is valid twtxt.".to_string(),
+            })
+        );
+    }
+
+    #[test]
+    fn test_to_twtxt() {
+        assert_eq!(
+            Entry {
+                timestamp: FixedOffset::east(3600)
+                    .ymd(2016, 02, 04)
+                    .and_hms_milli(13, 30, 1, 238),
+                author: None,
+                content: "Hello world!".to_string(),
+            }
+            .to_twtxt(),
+            "2016-02-04T13:30:01+01:00\tHello world!\n"
+        );
+    }
 
     #[test]
     fn test_format_duration() {
@@ -123,5 +163,30 @@ mod tests {
         );
         assert_eq!(Entry::format_duration(Duration::minutes(1)), "1 minute ago");
         assert_eq!(Entry::format_duration(Duration::seconds(30)), "just now");
+    }
+
+    #[test]
+    fn test_display() {
+        let timestamp = (Local::now() - Duration::weeks(1)).into();
+        let entry = Entry {
+            timestamp,
+            author: Some("anonymous".to_string()),
+            content: "Hello world!".to_string(),
+        };
+
+        assert_eq!(
+            format!("{}", entry),
+            format!("@anonymous 1 week ago\nHello world!",)
+        );
+
+        assert_eq!(
+            format!("{:#}", entry),
+            format!(
+                "@anonymous {}\nHello world!",
+                timestamp
+                    .with_timezone(&Local)
+                    .to_rfc3339_opts(SecondsFormat::Secs, true)
+            )
+        );
     }
 }

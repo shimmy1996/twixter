@@ -24,9 +24,9 @@ pub fn timeline(config: &Config, _subcommand: &ArgMatches) {
     for _ in 0..config.limit_timeline {
         if let Some(tweet) = all_tweets.pop() {
             if config.use_abs_time {
-                println!("{:#}", tweet);
+                println!("\n{:#}", tweet);
             } else {
-                println!("{}", tweet);
+                println!("\n{}", tweet);
             }
         }
     }
