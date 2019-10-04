@@ -1,4 +1,3 @@
-use chrono::{Local, SecondsFormat};
 use clap::ArgMatches;
 
 use std::fs::OpenOptions;
@@ -7,6 +6,7 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::config::Config;
+use crate::entry::Entry;
 
 /// Helper to run the tweet subcommand.
 pub fn tweet(config: &Config, subcommand: &ArgMatches) {
@@ -41,7 +41,7 @@ pub fn tweet(config: &Config, subcommand: &ArgMatches) {
             .create(true)
             .open(Path::new(&config.twtfile))
             .unwrap()
-            .write(compose(content).as_bytes())
+            .write(Entry::new(content, None).to_string().as_bytes())
             .expect("Unable to write new post");
 
         // Run post tweet hook.
@@ -50,15 +50,4 @@ pub fn tweet(config: &Config, subcommand: &ArgMatches) {
             .output()
             .expect("Failed to run post tweet hook");
     }
-}
-
-/// Formats given content into twtxt format by adding datetime.
-fn compose(content: String) -> String {
-    let timestamp = Local::now().to_rfc3339_opts(SecondsFormat::Secs, true);
-    let mut post = String::new();
-    post.push_str(&timestamp);
-    post.push('\t');
-    post.push_str(&content);
-    post.push('\n');
-    post
 }

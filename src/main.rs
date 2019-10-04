@@ -3,6 +3,7 @@ use clap::{crate_version, App, Arg, SubCommand};
 use std::path::Path;
 
 mod config;
+mod entry;
 mod follow;
 mod timeline;
 mod tweet;
